@@ -16,13 +16,21 @@ import (
 
 // Authserver is the implementation of pb.AuthserverServer.
 type Authserver struct {
-	logger *zap.Logger
-	conn   *ldap.Conn
+	logger     *zap.Logger
+	conn       *ldap.Conn
+	userFormat string
+	pemPath    string
+	issuer     string
+	audience   string
 }
 
 type config struct {
-	ldapaddr string
-	ldapport int
+	ldapaddr   string
+	ldapport   int
+	userFormat string
+	pem        string
+	issuer     string
+	audience   string
 }
 
 // Option is the option to create authserver instance.
@@ -42,11 +50,40 @@ func SetPort(port int) Option {
 	}
 }
 
+// SetUserFormat sets the user format used when bind to LDAP server.
+func SetUserFormat(format string) Option {
+	return func(c *config) {
+		c.userFormat = format
+	}
+}
+
+// SetPem sets the pem path used to sign JWT token.
+func SetPem(pem string) Option {
+	return func(c *config) {
+		c.pem = pem
+	}
+}
+
+// SetIssuer sets the issuer used in JWT claim.
+func SetIssuer(issuer string) Option {
+	return func(c *config) {
+		c.issuer = issuer
+	}
+}
+
+// SetAudience sets the audience used in JWT claim.
+func SetAudience(audience string) Option {
+	return func(c *config) {
+		c.audience = audience
+	}
+}
+
 // NewAuthserver creates new server instance.
 func NewAuthserver(logger *zap.Logger, opts ...Option) (pb.AuthserverServer, error) {
 	c := config{
-		ldapaddr: "localhost",
-		ldapport: 389,
+		ldapaddr:   "localhost",
+		ldapport:   389,
+		userFormat: "%s",
 	}
 	for _, o := range opts {
 		o(&c)
@@ -60,18 +97,20 @@ func NewAuthserver(logger *zap.Logger, opts ...Option) (pb.AuthserverServer, err
 	logger.Info("connected")
 
 	return &Authserver{
-		logger: logger,
-		conn:   conn,
+		logger:     logger,
+		conn:       conn,
+		userFormat: c.userFormat,
+		pemPath:    c.pem,
 	}, nil
 }
 
 // CreateToken creates and returns the new token.
 func (s *Authserver) CreateToken(ctx context.Context, req *pb.CreateTokenRequest) (*pb.Token, error) {
-	if err := s.conn.Bind(fmt.Sprintf("uid=%s,ou=Users,dc=ldap,dc=firefly,dc=kutc,dc=kansai-u,dc=ac,dc=jp", req.User), req.Password); err != nil {
+	if err := s.conn.Bind(fmt.Sprintf(s.userFormat, req.User), req.Password); err != nil {
 		return nil, errors.Wrap(err, "bind failed")
 	}
 
-	signKeyBytes, err := ioutil.ReadFile("./test.pem")
+	signKeyBytes, err := ioutil.ReadFile(s.pemPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load signkey")
 	}
@@ -83,11 +122,11 @@ func (s *Authserver) CreateToken(ctx context.Context, req *pb.CreateTokenRequest
 	nowUnix := time.Now().Unix()
 	v4 := uuid.NewV4()
 	claims := jwt.StandardClaims{
-		Audience:  "firefly.kutc.kansai-u.ac.jp",
+		Audience:  s.audience,
 		ExpiresAt: nowUnix + 3600, // valid 1h
 		Id:        v4.String(),
 		IssuedAt:  nowUnix,
-		Issuer:    "authserver.firefly.kutc.kansai-u.ac.jp",
+		Issuer:    s.issuer,
 		NotBefore: nowUnix - 5,
 		Subject:   "access_token",
 	}

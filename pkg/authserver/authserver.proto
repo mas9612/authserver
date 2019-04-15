@@ -7,12 +7,19 @@ syntax = "proto3";
 
 package authserver;
 
+import "google/api/annotations.proto";
+
 /**
  * Service to authenticate identity and issue JWT token.
  */
 service Authserver {
     // CreateToken creates and returns new JWT token for requested identity.
-    rpc CreateToken(CreateTokenRequest) returns (Token) {}
+    rpc CreateToken(CreateTokenRequest) returns (Token) {
+        option (google.api.http) = {
+            post: "/v1/oauth/token"
+            body: "*"
+        };
+    }
 }
 
 /**

@@ -68,6 +68,7 @@ func main() {
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterAuthserverServer(grpcServer, s)
+	logger.Info(fmt.Sprintf("listening on :%d", opts.Port))
 	if err := grpcServer.Serve(listener); err != nil {
 		logger.Fatal("service failed", zap.Error(err))
 	}

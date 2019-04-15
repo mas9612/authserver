@@ -8,16 +8,22 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	pb "github.com/mas9612/authserver/pkg/authserver"
-	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gopkg.in/ldap.v3"
+)
+
+const (
+	internalServerErrMsg = "internal server error occured"
 )
 
 // Authserver is the implementation of pb.AuthserverServer.
 type Authserver struct {
 	logger     *zap.Logger
-	conn       *ldap.Conn
+	ldapaddr   string
+	ldapport   int
 	userFormat string
 	pemPath    string
 	issuer     string
@@ -89,51 +95,67 @@ func NewAuthserver(logger *zap.Logger, opts ...Option) (pb.AuthserverServer, err
 		o(&c)
 	}
 
-	logger.Info("connecting LDAP server")
-	conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", c.ldapaddr, c.ldapport))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to connect to LDAP server")
-	}
-	logger.Info("connected")
-
 	return &Authserver{
 		logger:     logger,
-		conn:       conn,
+		ldapaddr:   c.ldapaddr,
+		ldapport:   c.ldapport,
 		userFormat: c.userFormat,
 		pemPath:    c.pem,
 	}, nil
 }
 
+// AuthClaim represents claim of JWT token.
+type AuthClaim struct {
+	User string `json:"user"`
+	jwt.StandardClaims
+}
+
 // CreateToken creates and returns the new token.
 func (s *Authserver) CreateToken(ctx context.Context, req *pb.CreateTokenRequest) (*pb.Token, error) {
-	if err := s.conn.Bind(fmt.Sprintf(s.userFormat, req.User), req.Password); err != nil {
-		return nil, errors.Wrap(err, "bind failed")
+	conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", s.ldapaddr, s.ldapport))
+	if err != nil {
+		errMsg := "failed to connect to LDAP server"
+		s.logger.Error(errMsg, zap.Error(err))
+		return nil, status.Error(codes.Internal, errMsg)
+	}
+	defer conn.Close()
+
+	if err := conn.Bind(fmt.Sprintf(s.userFormat, req.User), req.Password); err != nil {
+		errMsg := "bind failed"
+		s.logger.Error(errMsg, zap.Error(err))
+		return nil, status.Error(codes.Unauthenticated, errMsg)
 	}
 
 	signKeyBytes, err := ioutil.ReadFile(s.pemPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load signkey")
+		s.logger.Error("failed to load signkey", zap.Error(err))
+		return nil, status.Error(codes.Internal, internalServerErrMsg)
 	}
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signKeyBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse signkey")
+		s.logger.Error("failed to parse signkey", zap.Error(err))
+		return nil, status.Error(codes.Internal, internalServerErrMsg)
 	}
 
 	nowUnix := time.Now().Unix()
 	v4 := uuid.NewV4()
-	claims := jwt.StandardClaims{
-		Audience:  s.audience,
-		ExpiresAt: nowUnix + 3600, // valid 1h
-		Id:        v4.String(),
-		IssuedAt:  nowUnix,
-		Issuer:    s.issuer,
-		NotBefore: nowUnix - 5,
-		Subject:   "access_token",
+	claims := AuthClaim{
+		req.User,
+		jwt.StandardClaims{
+			Audience:  s.audience,
+			ExpiresAt: nowUnix + 3600, // valid 1h
+			Id:        v4.String(),
+			IssuedAt:  nowUnix,
+			Issuer:    s.issuer,
+			NotBefore: nowUnix - 5,
+			Subject:   "access_token",
+		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	ss, err := token.SignedString(signKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate JWT token")
+		s.logger.Error("failed to generate JWT token", zap.Error(err))
+		return nil, status.Error(codes.Internal, internalServerErrMsg)
 	}
 
 	return &pb.Token{

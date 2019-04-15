@@ -18,7 +18,6 @@ type options struct {
 	UserFormat string `short:"f" long:"user-format" default:"%s" description:"User format used when bind to LDAP server (default %s)."`
 	PemPath    string `long:"pem" default:"signkey.pem" description:"PEM encoded key used to sign JWT token (default is signkey.pem)."`
 	Issuer     string `long:"issuer" default:"authserver" description:"Issuer name used in JWT claim (default is authserver)."`
-	Audience   string `long:"audience" default:"example.com" description:"Audience name used in JWT claim (default is example.com)."`
 }
 
 func main() {
@@ -57,9 +56,6 @@ func main() {
 	}
 	if opts.Issuer != "authserver" {
 		options = append(options, server.SetIssuer(opts.Issuer))
-	}
-	if opts.Audience != "example.com" {
-		options = append(options, server.SetAudience(opts.Audience))
 	}
 
 	s, err := server.NewAuthserver(logger, options...)

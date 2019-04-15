@@ -19,13 +19,18 @@ service Authserver {
  * CreateTokenRequest represents the request of CreateToken.
  */
 message CreateTokenRequest {
+    // user is the username which want to be authenticate.
     string user = 1;
+    // password is the credential of given user.
     string password = 2;
+    // orig_host is the hostname for which JWT token is valid.
+    string orig_host = 3;
 }
 
 /**
  * Token represents the response of CreateToken.
  */
 message Token {
+    // token is the JWT token.
     string token = 1;
 }

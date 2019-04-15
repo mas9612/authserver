@@ -77,13 +77,6 @@ func SetIssuer(issuer string) Option {
 	}
 }
 
-// SetAudience sets the audience used in JWT claim.
-func SetAudience(audience string) Option {
-	return func(c *config) {
-		c.audience = audience
-	}
-}
-
 // NewAuthserver creates new server instance.
 func NewAuthserver(logger *zap.Logger, opts ...Option) (pb.AuthserverServer, error) {
 	c := config{
@@ -112,6 +105,12 @@ type AuthClaim struct {
 
 // CreateToken creates and returns the new token.
 func (s *Authserver) CreateToken(ctx context.Context, req *pb.CreateTokenRequest) (*pb.Token, error) {
+	if req.User == "" || req.Password == "" || req.OrigHost == "" {
+		errMsg := "too few argument: user, password, orig_host are required"
+		s.logger.Error(errMsg)
+		return nil, status.Error(codes.InvalidArgument, errMsg)
+	}
+
 	conn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", s.ldapaddr, s.ldapport))
 	if err != nil {
 		errMsg := "failed to connect to LDAP server"
@@ -142,7 +141,7 @@ func (s *Authserver) CreateToken(ctx context.Context, req *pb.CreateTokenRequest
 	claims := AuthClaim{
 		req.User,
 		jwt.StandardClaims{
-			Audience:  s.audience,
+			Audience:  req.OrigHost,
 			ExpiresAt: nowUnix + 3600, // valid 1h
 			Id:        v4.String(),
 			IssuedAt:  nowUnix,

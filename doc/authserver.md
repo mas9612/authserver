@@ -33,8 +33,9 @@ CreateTokenRequest represents the request of CreateToken.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| user | [string](#string) |  |  |
-| password | [string](#string) |  |  |
+| user | [string](#string) |  | user is the username which want to be authenticate. |
+| password | [string](#string) |  | password is the credential of given user. |
+| orig_host | [string](#string) |  | orig_host is the hostname for which JWT token is valid. |
 
 
 
@@ -49,7 +50,7 @@ Token represents the response of CreateToken.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| token | [string](#string) |  |  |
+| token | [string](#string) |  | token is the JWT token. |
 
 
 

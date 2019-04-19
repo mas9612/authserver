@@ -31,6 +31,14 @@
   version = "v1.3.1"
 
 [[projects]]
+  digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c5c6c98bc25355028a63748a498942a6398ccd22"
+  version = "v1.7.1"
+
+[[projects]]
   digest = "1:4cbbca3db0ff89197d000fb2fa0b90ca4516a7fbd4d8cd9fa4bebf17df484f6d"
   name = "github.com/grpc-ecosystem/grpc-gateway"
   packages = [
@@ -212,6 +220,7 @@
   input-imports = [
     "github.com/dgrijalva/jwt-go",
     "github.com/golang/protobuf/proto",
+    "github.com/gorilla/mux",
     "github.com/grpc-ecosystem/grpc-gateway/runtime",
     "github.com/grpc-ecosystem/grpc-gateway/utilities",
     "github.com/jessevdk/go-flags",

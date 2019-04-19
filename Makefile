@@ -2,6 +2,7 @@ GOBIN=go
 PROTOCBIN=protoc
 AUTHSERVER=authserver
 AUTHPROXY=authserver-proxy
+PUBKEYSERVER=pubkey-server
 
 .PHONY: all
 all: dep test build-grpc build doc
@@ -10,6 +11,7 @@ all: dep test build-grpc build doc
 build:
 	CGO_ENABLED=0 $(GOBIN) build -o $(AUTHSERVER) ./cmd/authserver
 	CGO_ENABLED=0 $(GOBIN) build -o $(AUTHPROXY) ./cmd/authserver-proxy
+	CGO_ENABLED=0 $(GOBIN) build -o $(PUBKEYSERVER) ./cmd/pubkey-server
 
 .PHONY: test
 test:

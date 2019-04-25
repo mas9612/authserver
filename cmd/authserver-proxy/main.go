@@ -13,8 +13,9 @@ import (
 )
 
 type options struct {
-	Port           int `short:"p" long:"port" default:"8080" description:"Proxy port (default is 8080)."`
-	AuthserverPort int `long:"authserver-port" default:"10000" description:"Authserver port (default is 10000)."`
+	Port           int    `short:"p" long:"port" default:"8080" description:"Proxy port (default is 8080)."`
+	AuthserverAddr string `long:"authserver-addr" default:"" description:"Authserver address (default is empty string)"`
+	AuthserverPort int    `long:"authserver-port" default:"10000" description:"Authserver port (default is 10000)."`
 }
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 
 	mux := runtime.NewServeMux()
 	grpcOpts := []grpc.DialOption{grpc.WithInsecure()}
-	if err := gw.RegisterAuthserverHandlerFromEndpoint(ctx, mux, fmt.Sprintf(":%d", opts.AuthserverPort), grpcOpts); err != nil {
+	if err := gw.RegisterAuthserverHandlerFromEndpoint(ctx, mux, fmt.Sprintf("%s:%d", opts.AuthserverAddr, opts.AuthserverPort), grpcOpts); err != nil {
 		logger.Fatal("failed to register authserver handler", zap.Error(err))
 	}
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", opts.Port), mux); err != nil {

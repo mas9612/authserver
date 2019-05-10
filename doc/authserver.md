@@ -6,6 +6,8 @@
 - [pkg/authserver/authserver.proto](#pkg/authserver/authserver.proto)
     - [CreateTokenRequest](#authserver.CreateTokenRequest)
     - [Token](#authserver.Token)
+    - [ValidateTokenRequest](#authserver.ValidateTokenRequest)
+    - [ValidateTokenResponse](#authserver.ValidateTokenResponse)
   
   
   
@@ -56,6 +58,38 @@ Token represents the response of CreateToken.
 
 
 
+
+<a name="authserver.ValidateTokenRequest"></a>
+
+### ValidateTokenRequest
+ValidateTokenRequest represents the request of ValidateToken.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| token | [string](#string) |  | token is the JWT token. |
+
+
+
+
+
+
+<a name="authserver.ValidateTokenResponse"></a>
+
+### ValidateTokenResponse
+ValidateTokenResponse represents the response of ValidateToken.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| valid | [bool](#bool) |  | valid represents whether given token is valid or not.
+
+// err_code represents the error type if token is invalid. int32 err_code = 2; |
+
+
+
+
+
  
 
  
@@ -71,6 +105,7 @@ Service to authenticate identity and issue JWT token.
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | CreateToken | [CreateTokenRequest](#authserver.CreateTokenRequest) | [Token](#authserver.Token) | CreateToken creates and returns new JWT token for requested identity. |
+| ValidateToken | [ValidateTokenRequest](#authserver.ValidateTokenRequest) | [ValidateTokenResponse](#authserver.ValidateTokenResponse) | ValidateToken validates given token and returns its validity. |
 
  
 

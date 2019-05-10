@@ -12,12 +12,13 @@ import (
 )
 
 type options struct {
-	Port       int    `short:"p" long:"port" default:"10000" description:"listen port (default is 10000)."`
-	LdapAddr   string `long:"ldap-addr" default:"localhost" description:"LDAP server address (default is localhost)."`
-	LdapPort   int    `long:"ldap-port" default:"389" description:"LDAP server port (default is 389)."`
-	UserFormat string `short:"f" long:"user-format" default:"%s" description:"User format used when bind to LDAP server (default %s)."`
-	PemPath    string `long:"pem" default:"signkey.pem" description:"PEM encoded key used to sign JWT token (default is signkey.pem)."`
-	Issuer     string `long:"issuer" default:"authserver" description:"Issuer name used in JWT claim (default is authserver)."`
+	Port       int    `short:"p" long:"port" default:"10000" description:"listen port."`
+	LdapAddr   string `long:"ldap-addr" default:"localhost" description:"LDAP server address."`
+	LdapPort   int    `long:"ldap-port" default:"389" description:"LDAP server port."`
+	UserFormat string `short:"f" long:"user-format" default:"%s" description:"User format used when bind to LDAP server."`
+	PemPath    string `long:"pem" default:"signkey.pem" description:"PEM encoded key used to sign JWT token.pem)."`
+	PubkeyPath string `long:"pubkey" default:"authserver.pub" description:"Public key which is used to validate JWT token."`
+	Issuer     string `long:"issuer" default:"authserver" description:"Issuer name used in JWT claim."`
 }
 
 func main() {
@@ -53,6 +54,9 @@ func main() {
 	}
 	if opts.PemPath != "signkey.pem" {
 		options = append(options, server.SetPem(opts.PemPath))
+	}
+	if opts.PubkeyPath != "authserver.pub" {
+		options = append(options, server.SetPubkey(opts.PubkeyPath))
 	}
 	if opts.Issuer != "authserver" {
 		options = append(options, server.SetIssuer(opts.Issuer))

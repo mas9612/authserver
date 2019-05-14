@@ -64,6 +64,6 @@ message ValidateTokenRequest {
 message ValidateTokenResponse {
     // valid represents whether given token is valid or not.
     bool valid = 1;
-    // // err_code represents the error type if token is invalid.
-    // int32 err_code = 2;
+    // user is the authenticated username.
+    string user = 2;
 }

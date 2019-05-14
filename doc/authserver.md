@@ -82,9 +82,8 @@ ValidateTokenResponse represents the response of ValidateToken.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| valid | [bool](#bool) |  | valid represents whether given token is valid or not.
-
-// err_code represents the error type if token is invalid. int32 err_code = 2; |
+| valid | [bool](#bool) |  | valid represents whether given token is valid or not. |
+| user | [string](#string) |  | user is the authenticated username. |
 
 
 

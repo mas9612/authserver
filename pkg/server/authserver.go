@@ -195,5 +195,5 @@ func (s *Authserver) ValidateToken(ctx context.Context, in *pb.ValidateTokenRequ
 	if err != nil {
 		return &pb.ValidateTokenResponse{Valid: false}, status.Error(codes.Unauthenticated, fmt.Sprintf("failed to verify token: %s", err.Error()))
 	}
-	return &pb.ValidateTokenResponse{Valid: true}, nil
+	return &pb.ValidateTokenResponse{Valid: true, User: claim.User}, nil
 }

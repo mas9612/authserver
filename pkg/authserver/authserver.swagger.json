@@ -116,6 +116,10 @@
           "type": "boolean",
           "format": "boolean",
           "description": "valid represents whether given token is valid or not."
+        },
+        "user": {
+          "type": "string",
+          "description": "user is the authenticated username."
         }
       },
       "description": "*\nValidateTokenResponse represents the response of ValidateToken."

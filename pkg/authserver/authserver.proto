@@ -66,4 +66,7 @@ message ValidateTokenResponse {
     bool valid = 1;
     // user is the authenticated username.
     string user = 2;
+    // error_code is the error code which represents the reason why given token
+    // is invalid.
+    uint32 error_code = 3;
 }

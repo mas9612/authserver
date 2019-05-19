@@ -193,7 +193,14 @@ func (s *Authserver) ValidateToken(ctx context.Context, in *pb.ValidateTokenRequ
 		return verifyKey, nil
 	})
 	if err != nil {
-		return &pb.ValidateTokenResponse{Valid: false}, status.Error(codes.Unauthenticated, fmt.Sprintf("failed to verify token: %s", err.Error()))
+		jwtErr := err.(*jwt.ValidationError)
+		return &pb.ValidateTokenResponse{
+			Valid:     false,
+			ErrorCode: jwtErr.Errors,
+		}, status.Error(codes.Unauthenticated, fmt.Sprintf("failed to verify token: %s", err.Error()))
 	}
-	return &pb.ValidateTokenResponse{Valid: true, User: claim.User}, nil
+	return &pb.ValidateTokenResponse{
+		Valid: true,
+		User:  claim.User,
+	}, nil
 }
